@@ -14,6 +14,7 @@ import (
 
 	"github.com/Mague/tatum-api/middlewares"
 	"github.com/Mague/tatum-api/payloads"
+	"github.com/Mague/tatum-api/responses"
 )
 
 var router *gin.Engine
@@ -60,8 +61,21 @@ func main() {
 		defer res.Body.Close()
 		body, _ := ioutil.ReadAll(res.Body)
 
-		fmt.Println(res)
-		fmt.Println(string(body))
+		if res.StatusCode == 200 {
+			var txId responses.TxId
+
+			if err := json.Unmarshal(body, &txId); err != nil {
+				panic(err)
+			}
+			fmt.Println(txId.TxId)
+			ctx.JSON(http.StatusOK, txId)
+		} else {
+			ctx.JSON(http.StatusConflict, gin.H{
+				"msg": "No se que paso baby",
+			})
+		}
+		//fmt.Println(res)
+		//fmt.Println(string(body))
 
 		/*resp, err := http.Post(
 			tatumApiUrl+"/nft/deploy/",
