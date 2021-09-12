@@ -70,12 +70,14 @@ func main() {
 			fmt.Println(txId.TxId)
 			ctx.JSON(http.StatusOK, txId)
 		} else {
-			ctx.JSON(http.StatusConflict, gin.H{
-				"msg": "No se que paso baby",
-			})
+			var errorTatum responses.ErrorTatum
+			if err := json.Unmarshal(body, &errorTatum); err != nil {
+				panic(err)
+			}
+			ctx.JSON(http.StatusConflict, errorTatum)
 		}
 		//fmt.Println(res)
-		//fmt.Println(string(body))
+		fmt.Println(string(body))
 
 		/*resp, err := http.Post(
 			tatumApiUrl+"/nft/deploy/",
