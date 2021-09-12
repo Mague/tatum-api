@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -15,6 +14,7 @@ import (
 	"github.com/Mague/tatum-api/middlewares"
 	"github.com/Mague/tatum-api/payloads"
 	"github.com/Mague/tatum-api/responses"
+	"github.com/Mague/tatum-api/utils"
 )
 
 var router *gin.Engine
@@ -25,8 +25,8 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 	httpPort := os.Getenv("HTTP_PORT")
-	tatumApiUrl := os.Getenv("TATUM_API_URL")
-	tatumApiKey := os.Getenv("TATUM_API_KEY")
+	//tatumApiUrl := os.Getenv("TATUM_API_URL")
+	//tatumApiKey := os.Getenv("TATUM_API_KEY")
 	gin.SetMode(gin.DebugMode)
 
 	router = gin.Default()
@@ -50,34 +50,24 @@ func main() {
 		postBody, _ := json.Marshal(deploy)
 
 		requestBody := bytes.NewBuffer(postBody)
-		req, _ := http.NewRequest("POST", tatumApiUrl+"/v3/nft/deploy/", requestBody)
+		//req, _ := http.NewRequest("POST", tatumApiUrl+"/v3/nft/deploy/", requestBody)
+		utils.RequestPost("/v3/nft/deploy/", requestBody, func(body []byte, statusCode int) {
+			if statusCode == 200 {
+				var txId responses.TxId
 
-		req.Header.Add("content-type", "application/json")
-		//req.Header.Add("x-testnet-type", "SOME_STRING_VALUE")
-		req.Header.Add("x-api-key", tatumApiKey)
-
-		res, _ := http.DefaultClient.Do(req)
-
-		defer res.Body.Close()
-		body, _ := ioutil.ReadAll(res.Body)
-
-		if res.StatusCode == 200 {
-			var txId responses.TxId
-
-			if err := json.Unmarshal(body, &txId); err != nil {
-				panic(err)
+				if err := json.Unmarshal(body, &txId); err != nil {
+					panic(err)
+				}
+				fmt.Println(txId.TxId)
+				ctx.JSON(http.StatusOK, txId)
+			} else {
+				var errorTatum responses.ErrorTatum
+				if err := json.Unmarshal(body, &errorTatum); err != nil {
+					panic(err)
+				}
+				ctx.JSON(http.StatusConflict, errorTatum)
 			}
-			fmt.Println(txId.TxId)
-			ctx.JSON(http.StatusOK, txId)
-		} else {
-			var errorTatum responses.ErrorTatum
-			if err := json.Unmarshal(body, &errorTatum); err != nil {
-				panic(err)
-			}
-			ctx.JSON(http.StatusConflict, errorTatum)
-		}
-		//fmt.Println(res)
-		fmt.Println(string(body))
+		})
 
 		/*resp, err := http.Post(
 			tatumApiUrl+"/nft/deploy/",
