@@ -32,5 +32,6 @@ func RequestPost(endPoint string, requestBody *bytes.Buffer, fn func([]byte, int
 	fmt.Println(res)
 	defer res.Body.Close()
 	body, _ := ioutil.ReadAll(res.Body)
+	fmt.Println(string(body))
 	fn(body, res.StatusCode)
 }

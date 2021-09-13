@@ -23,7 +23,7 @@ func (this Nft) Load(engine *gin.Engine) {
 	nft := this.router.Group("api/v1/nft")
 	{
 		nft.POST("/deploy", this.deploy)
-		nft.POST("/nft", this.mint)
+		nft.POST("/mint", this.mint)
 	}
 }
 
@@ -69,11 +69,20 @@ func (this Nft) mint(ctx *gin.Context) {
 			fmt.Println(txId.TxId)
 			ctx.JSON(http.StatusOK, txId)
 		} else {
-			var errorTatum responses.ErrorTatum
-			if err := json.Unmarshal(body, &errorTatum); err != nil {
-				panic(err)
+			if statusCode == 400 {
+				var errorTatum responses.Error400
+				if err := json.Unmarshal(body, &errorTatum); err != nil {
+					panic(err)
+				}
+				ctx.JSON(http.StatusConflict, errorTatum)
+			} else {
+
+				var errorTatum responses.ErrorTatum
+				if err := json.Unmarshal(body, &errorTatum); err != nil {
+					panic(err)
+				}
+				ctx.JSON(http.StatusConflict, errorTatum)
 			}
-			ctx.JSON(http.StatusConflict, errorTatum)
 		}
 	})
 }
