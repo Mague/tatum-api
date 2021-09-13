@@ -1,9 +1,6 @@
 package main
 
 import (
-	"bytes"
-	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -12,9 +9,6 @@ import (
 	"github.com/joho/godotenv"
 
 	"github.com/Mague/tatum-api/middlewares"
-	"github.com/Mague/tatum-api/payloads"
-	"github.com/Mague/tatum-api/responses"
-	"github.com/Mague/tatum-api/utils"
 )
 
 var router *gin.Engine
@@ -36,44 +30,6 @@ func main() {
 			"status": "Running",
 		})
 	})
-	router.POST("/nft/deploy/", func(ctx *gin.Context) {
-		var deploy payloads.Deploy
-		ctx.BindJSON(&deploy)
-		/*{
-		"chain": "CELO",
-		"name": "My ERC721",
-		"symbol": "ERC_SYMBOL",
-		"fromPrivateKey": "0x05e150c73f1920ec14caa1e0b6aa09940899678051a78542840c2668ce5080c2",
-		"nonce": 0,
-		"feeCurrency": "CELO"
-		}*/
-		postBody, _ := json.Marshal(deploy)
-
-		requestBody := bytes.NewBuffer(postBody)
-		//req, _ := http.NewRequest("POST", tatumApiUrl+"/v3/nft/deploy/", requestBody)
-		utils.RequestPost("/v3/nft/deploy/", requestBody, func(body []byte, statusCode int) {
-			if statusCode == 200 {
-				var txId responses.TxId
-
-				if err := json.Unmarshal(body, &txId); err != nil {
-					panic(err)
-				}
-				fmt.Println(txId.TxId)
-				ctx.JSON(http.StatusOK, txId)
-			} else {
-				var errorTatum responses.ErrorTatum
-				if err := json.Unmarshal(body, &errorTatum); err != nil {
-					panic(err)
-				}
-				ctx.JSON(http.StatusConflict, errorTatum)
-			}
-		})
-
-		/*resp, err := http.Post(
-			tatumApiUrl+"/nft/deploy/",
-			"application/json",
-		)*/
-
-	})
+	initializeRoutes()
 	router.Run(":" + httpPort)
 }

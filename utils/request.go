@@ -2,6 +2,7 @@ package utils
 
 import (
 	"bytes"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -14,6 +15,8 @@ func RequestPost(endPoint string, requestBody *bytes.Buffer, fn func([]byte, int
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
+	} else {
+		fmt.Println("Siempree lee el archivo")
 	}
 
 	tatumApiUrl := os.Getenv("TATUM_API_URL")
@@ -26,7 +29,7 @@ func RequestPost(endPoint string, requestBody *bytes.Buffer, fn func([]byte, int
 	req.Header.Add("x-api-key", tatumApiKey)
 
 	res, _ := http.DefaultClient.Do(req)
-
+	fmt.Println(res)
 	defer res.Body.Close()
 	body, _ := ioutil.ReadAll(res.Body)
 	fn(body, res.StatusCode)
